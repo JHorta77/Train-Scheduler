@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <title>Train Scehduler</title>
+</head>
+
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="jumbotron">
+
+                    <h1 class="text-center">MBTA</h1>
+                    <p class="text-center">Subway</p>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <table class="table">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Train Name</th>
+                            <th scope="col">Destination</th>
+                            <th scope="col">Frequency</th>
+                            <th scope="col">Next Arrival</th>
+                            <th scope="col">Minutes Away</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trainSection">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        Featured
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="train-name">Train Name</label>
+                                <input type="text" class="form-control" id="trainName">
+                            </div>
+                            <div class="form-group">
+                                <label for="Destination">Destination</label>
+                                <input type="text" class="form-control" id="trainDestination">
+                            </div>
+                            <div class="form-group">
+                                <label for="firstTime">First Time</label>
+                                <input type="text" class="form-control" id="firstTime">
+                            </div>
+                            <div class="form-group">
+                                <label for="Frequency">Frequency</label>
+                                <input type="text" class="form-control" id="frequency">
+                            </div>
+                            <button id="save" type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script>
+        // Initialize Firebase
+        var config = {
+            apiKey: "AIzaSyBpdiH1oL6y6ghdyjA1PXEq5nqau_5CriY",
+            authDomain: "click-counter123abc.firebaseapp.com",
+            databaseURL: "https://click-counter123abc.firebaseio.com",
+            projectId: "click-counter123abc",
+            storageBucket: "click-counter123abc.appspot.com",
+            messagingSenderId: "408886132098"
+        };
+        firebase.initializeApp(config);
+    </script>
+    <script>
+        $(document).ready(function () {
+            // access firebase
+            var database = firebase.database();
+
+            $("#save").on("click", function (e) {
+                // on submit get inputs
+                e.preventDefault();
+
+                var trainName = $("#trainName").val().trim();
+                var trainDestination = $("#trainDestination").val().trim();
+                var firstTime = $("#firstTime").val().trim();
+                var frequency = $("#frequency").val().trim();
+
+                // save the inputs to the firebase
+                database.ref().push({
+                    trainName: trainName,
+                    trainDestination: trainDestination,
+                    firstTime: firstTime,
+                    frequency: frequency
+                });
+
+
+
+
+            });
+
+            database.ref().on("child_added", function (snapshot) {
+                var data = snapshot.val();
+                if (!data) {
+                    return;
+                }
+                // calculate next arrival
+                var nextArrival = "TBD";
+                // calculate minutes away
+                var minutesAway = 15;
+
+                var html = `
+                <tr>
+                            <td>${data.trainName}</td>
+                            <td>${data.trainDestination}</td>
+                            <td>${data.frequency}</td>
+                            <td>${nextArrival}</td>
+                            <td>${minutesAway}</td>
+                        </tr>
+                `;
+
+                $("#trainSection").append(html);
+            });
+            // update the listing for the train
+            var startTimeConverted = moment(nextArrival, "hh:mm").subtract(1, "years");
+
+            var currentTime = moment();
+
+            var diffTime = moment().dif(moment(startTimeConverted), "minutes");
+
+            var tRemainder = diffTime % frequency;
+
+            var tMinutesTillTrain = frequency - tRemainder;
+
+            var nextTrain = moment().add(tMinutesTillTrain, "minutes");
+
+            var catchTrain = moment(nextTrain).format("HH:mm");
+            // at the end, get the prediction working 
+        });
+    </script>
+</body>
+
+</html>
